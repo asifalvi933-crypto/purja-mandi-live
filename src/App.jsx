@@ -1,10 +1,11 @@
 // src/App.jsx
-// Sirf "jodne" ka kaam: tabs, hooks aur screens ko connect karta hai.
+// Just wires things together: tabs, hooks, and screens.
 import { useState } from "react";
 import { supabase } from "./lib/supabase";
 import { updateDealerParts } from "./lib/partsApi";
 import { useAuth } from "./hooks/useAuth";
 import { useParts } from "./hooks/useParts";
+import { useReviews } from "./hooks/useReviews";
 import { useToast } from "./hooks/useToast";
 import Header from "./components/layout/Header";
 import BottomNav from "./components/layout/BottomNav";
@@ -18,29 +19,22 @@ export default function App() {
   const [toast, say] = useToast();
   const auth = useAuth();
   const parts = useParts({ uid: auth.uid, me: auth.me, say });
+  const reviews = useReviews({ say });
 
-  const goTab = async (t) => {
+  const goTab = (t) => {
     setTab(t);
     window.scrollTo(0, 0);
-    // Dealer ke pehli baar Bechein kholne par hi uska account banta hai
-    if (t === "sell" && !auth.user) {
-      const { error } = await auth.signInDealer();
-      if (error) {
-        console.error(error);
-        say("Login nahi ho paya");
-      }
-    }
   };
 
   const saveProfile = async (profile) => {
     try {
       const user = await auth.saveProfile(profile);
       await updateDealerParts(user.id, profile);
-      say("Jaankari save ho gayi");
+      say("Details saved");
       return true;
     } catch (e) {
       console.error(e);
-      say("Save nahi hua. Dobara try karein");
+      say("Couldn't save. Please try again");
       return false;
     }
   };
@@ -53,14 +47,17 @@ export default function App() {
         <Header />
 
         {tab === "buy" ? (
-          <BuyerScreen items={parts.items} status={parts.status} onRetry={parts.retry} />
+          <BuyerScreen
+            items={parts.items}
+            status={parts.status}
+            onRetry={parts.retry}
+            ratingFor={reviews.ratingFor}
+            onRate={reviews.addReview}
+          />
         ) : (
           <SellerScreen
-            me={auth.me}
-            myId={auth.uid}
-            authReady={!!auth.user}
-            authBusy={auth.busy}
-            onRetryAuth={() => goTab("sell")}
+            auth={auth}
+            rating={reviews.ratingFor(auth.uid)}
             saveProfile={saveProfile}
             items={parts.items}
             addItem={parts.addItem}

@@ -26,13 +26,13 @@ export default function BottomNav({ tab, onChange }) {
         <NavBtn
           active={tab === "buy"}
           icon={ShoppingBag}
-          label="Kharidein"
+          label="Buy"
           onClick={() => onChange("buy")}
         />
         <NavBtn
           active={tab === "sell"}
           icon={Store}
-          label="Bechein"
+          label="Sell"
           onClick={() => onChange("sell")}
         />
       </div>

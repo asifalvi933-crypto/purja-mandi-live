@@ -1,5 +1,5 @@
 // src/constants/carData.js
-// Dropdown aur suggestions ki list. Naya brand/model/part jodna ho to yahin badlein.
+// Dropdown and suggestion lists. Add a new brand/model/part here.
 
 export const BRANDS = [
   "Maruti", "Hyundai", "Tata", "Mahindra", "Honda", "Toyota", "Ford",

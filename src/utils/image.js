@@ -1,5 +1,5 @@
 // src/utils/image.js
-// Phone ki badi photo ko chhota karta hai taaki upload aur app tez rahe.
+// Shrinks a large phone photo so uploads and the app stay fast.
 export function compressImage(file, maxSize = 800) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

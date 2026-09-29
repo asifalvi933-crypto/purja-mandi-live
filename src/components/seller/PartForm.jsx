@@ -24,7 +24,7 @@ export default function PartForm({ onAdd }) {
     try {
       setPhoto(await compressImage(file));
     } catch {
-      setErr("Photo nahi khul payi. Doosri photo try karein.");
+      setErr("Couldn't open that photo. Try a different one.");
     }
     setBusy(false);
   };
@@ -32,7 +32,7 @@ export default function PartForm({ onAdd }) {
   const submit = async () => {
     const p = Number(price);
     if (!brand || !model.trim() || !part.trim() || !p || p <= 0) {
-      setErr("Brand, model, part ka naam aur price bharna zaroori hai.");
+      setErr("Brand, model, part name and price are all required.");
       return;
     }
     setErr("");
@@ -46,7 +46,7 @@ export default function PartForm({ onAdd }) {
     });
     setSaving(false);
     if (ok) {
-      // Brand aur model rakhte hain: ek gaadi ke kai parts jaldi daal sakein
+      // Keep brand and model so multiple parts from the same car can be added quickly
       setPart("");
       setPrice("");
       setPhoto(null);
@@ -55,21 +55,21 @@ export default function PartForm({ onAdd }) {
 
   return (
     <section className="bg-white rounded-xl border border-stone-200 p-4">
-      <h2 className="text-lg font-bold text-slate-900">Naya part daalein</h2>
+      <h2 className="text-lg font-bold text-slate-900">Add a new part</h2>
 
       <div className="mt-3 space-y-4">
         <div>
           <label className="relative block h-44 rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 overflow-hidden cursor-pointer focus-within:ring-2 focus-within:ring-amber-400">
             <input type="file" accept="image/*" onChange={pickPhoto} className="sr-only" />
             {photo ? (
-              <img src={photo} alt="Part ki photo" className="w-full h-full object-cover" />
+              <img src={photo} alt="Part photo" className="w-full h-full object-cover" />
             ) : (
               <div className="h-full flex flex-col items-center justify-center gap-1 text-slate-600">
                 <Camera size={32} aria-hidden="true" />
                 <span className="font-medium">
-                  {busy ? "Photo lag rahi hai..." : "Part ki photo lagayein"}
+                  {busy ? "Processing photo..." : "Add a photo of the part"}
                 </span>
-                <span className="text-xs text-slate-500">Camera ya gallery se</span>
+                <span className="text-xs text-slate-500">From camera or gallery</span>
               </div>
             )}
           </label>
@@ -78,14 +78,14 @@ export default function PartForm({ onAdd }) {
               onClick={() => setPhoto(null)}
               className="mt-2 flex items-center gap-1 text-sm font-medium text-red-700"
             >
-              <X size={16} aria-hidden="true" /> Photo hatayein
+              <X size={16} aria-hidden="true" /> Remove photo
             </button>
           )}
         </div>
 
-        <Field label="Gaadi ka brand">
+        <Field label="Car brand">
           <select value={brand} onChange={(e) => setBrand(e.target.value)} className={inputCls}>
-            <option value="">Brand chunein</option>
+            <option value="">Select brand</option>
             {BRANDS.map((b) => (
               <option key={b} value={b}>
                 {b}
@@ -99,7 +99,7 @@ export default function PartForm({ onAdd }) {
             list="model-list"
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            placeholder="Jaise Swift, i10, Bolero"
+            placeholder="e.g. Swift, i10, Bolero"
             maxLength={40}
             className={inputCls}
           />
@@ -110,12 +110,12 @@ export default function PartForm({ onAdd }) {
           </datalist>
         </Field>
 
-        <Field label="Part ka naam">
+        <Field label="Part name">
           <input
             list="part-list"
             value={part}
             onChange={(e) => setPart(e.target.value)}
-            placeholder="Jaise Headlight, Gearbox"
+            placeholder="e.g. Headlight, Gearbox"
             maxLength={80}
             className={inputCls}
           />
@@ -133,7 +133,7 @@ export default function PartForm({ onAdd }) {
             min="1"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder="Jaise 1800"
+            placeholder="e.g. 1800"
             className={inputCls}
           />
         </Field>
@@ -150,7 +150,7 @@ export default function PartForm({ onAdd }) {
         disabled={saving || busy}
         className="mt-4 w-full h-12 rounded-lg bg-amber-400 text-slate-900 font-bold text-base active:bg-amber-500 disabled:opacity-60"
       >
-        {saving ? "List ho raha hai..." : "Part list karein"}
+        {saving ? "Listing..." : "List this part"}
       </button>
     </section>
   );

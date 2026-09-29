@@ -1,5 +1,5 @@
 // src/utils/format.js
-// Price, phone number aur Call/WhatsApp links.
+// Price, phone number, and Call/WhatsApp links.
 
 export const fmtPrice = (n) => "₹" + Number(n).toLocaleString("en-IN");
 
@@ -7,7 +7,7 @@ export const digitsOnly = (p) => String(p).replace(/\D/g, "");
 
 export const isValidPhone = (p) => digitsOnly(p).replace(/^0+/, "").length >= 10;
 
-// 10 digit number ke aage India ka code 91 lagata hai
+// Adds India's country code in front of a 10-digit number
 export const intlPhone = (p) => {
   const d = digitsOnly(p).replace(/^0+/, "");
   return d.length === 10 ? "91" + d : d;
@@ -16,6 +16,6 @@ export const intlPhone = (p) => {
 export const telLink = (item) => `tel:+${intlPhone(item.phone)}`;
 
 export const waLink = (item) => {
-  const msg = `Namaste ${item.dealerName}, aapke paas ${item.brand} ${item.model} ka ${item.part} (${fmtPrice(item.price)}) available hai? Purja Mandi par dekha.`;
+  const msg = `Hi ${item.dealerName}, do you still have the ${item.brand} ${item.model} ${item.part} (${fmtPrice(item.price)}) available? Saw it on Car Scrap Hub.`;
   return `https://wa.me/${intlPhone(item.phone)}?text=${encodeURIComponent(msg)}`;
 };

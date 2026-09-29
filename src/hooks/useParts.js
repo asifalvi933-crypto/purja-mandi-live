@@ -1,5 +1,5 @@
 // src/hooks/useParts.js
-// Parts ki list, live updates, aur add / sold / delete.
+// Parts list, live updates, and add / mark-sold / delete.
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import {
@@ -26,7 +26,7 @@ export function useParts({ uid, me, say }) {
     }
   }, [uid]);
 
-  // Pehli baar load + live updates
+  // Initial load + live updates
   useEffect(() => {
     if (!supabase) return;
     load();
@@ -37,7 +37,7 @@ export function useParts({ uid, me, say }) {
       onRemove: (id) => setItems((prev) => prev.filter((i) => i.id !== id)),
     });
 
-    // Phone sleep se wapas aaye to data dobara sync karo
+    // Re-sync when the phone wakes up from sleep
     const onVisible = () => {
       if (document.visibilityState === "visible") load();
     };
@@ -59,11 +59,11 @@ export function useParts({ uid, me, say }) {
       const photoUrl = photo ? await uploadPhoto(uid, photo) : null;
       const item = await insertPart({ me, brand, model, part, price, photoUrl });
       setItems((prev) => [item, ...prev.filter((i) => i.id !== item.id)]);
-      say("Part list ho gaya");
+      say("Part listed successfully");
       return true;
     } catch (e) {
       console.error(e);
-      say("Part list nahi hua. Internet check karein");
+      say("Couldn't list the part. Check your internet connection");
       return false;
     }
   };
@@ -75,14 +75,14 @@ export function useParts({ uid, me, say }) {
     const setSold = (value) =>
       setItems((prev) => prev.map((i) => (i.id === id ? { ...i, sold: value } : i)));
 
-    setSold(next); // pehle screen badlo, phir database
+    setSold(next); // update the screen first, then the database
     try {
       await setPartSold(id, next);
-      say(next ? "Sold mark ho gaya" : "Wapas available ho gaya");
+      say(next ? "Marked as sold" : "Marked as available again");
     } catch (e) {
       console.error(e);
       setSold(!next);
-      say("Update nahi hua. Dobara try karein");
+      say("Couldn't update. Please try again");
     }
   };
 
@@ -91,10 +91,10 @@ export function useParts({ uid, me, say }) {
     try {
       await deletePart(id, target?.photo);
       setItems((prev) => prev.filter((i) => i.id !== id));
-      say("Part hata diya");
+      say("Part deleted");
     } catch (e) {
       console.error(e);
-      say("Part nahi hata. Dobara try karein");
+      say("Couldn't delete the part. Please try again");
     }
   };
 

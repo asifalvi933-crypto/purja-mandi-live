@@ -39,17 +39,17 @@ export default function MyPartRow({ item, armed, onToggleSold, onDelete }) {
         >
           {item.sold ? (
             <>
-              <Undo2 size={18} aria-hidden="true" /> Wapas available karein
+              <Undo2 size={18} aria-hidden="true" /> Mark available again
             </>
           ) : (
             <>
-              <CheckCircle2 size={18} aria-hidden="true" /> Sold ho gaya
+              <CheckCircle2 size={18} aria-hidden="true" /> Mark as sold
             </>
           )}
         </button>
         <button
           onClick={onDelete}
-          aria-label="Part hatayein"
+          aria-label="Delete part"
           className={
             "h-11 rounded-lg border font-medium flex items-center justify-center gap-1 " +
             (armed
@@ -58,7 +58,7 @@ export default function MyPartRow({ item, armed, onToggleSold, onDelete }) {
           }
         >
           <Trash2 size={18} aria-hidden="true" />
-          {armed && <span className="text-sm">Pakka?</span>}
+          {armed && <span className="text-sm">Confirm?</span>}
         </button>
       </div>
     </div>

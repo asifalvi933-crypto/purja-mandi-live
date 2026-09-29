@@ -1,9 +1,9 @@
 // src/lib/partsApi.js
-// Database aur storage ke saare calls yahin hain.
-// UI ki files mein supabase ka koi seedha code nahi hota.
+// All database and storage calls live here.
+// UI files never talk to supabase directly.
 import { supabase, PHOTO_BUCKET } from "./supabase";
 
-// Database ki row ko UI ke item mein badalta hai
+// Converts a database row into the shape the UI uses
 export const fromRow = (r) => ({
   id: r.id,
   dealerId: r.dealer_id,
@@ -19,13 +19,13 @@ export const fromRow = (r) => ({
   createdAt: new Date(r.created_at).getTime(),
 });
 
-// Photo ke public link se storage ka path nikalta hai (delete ke liye)
+// Extracts the storage path from a photo's public URL (for deleting)
 const photoPath = (url) => {
   const rest = url && url.split(`/${PHOTO_BUCKET}/`)[1];
   return rest ? decodeURIComponent(rest.split("?")[0]) : null;
 };
 
-// Sab ke available parts + dealer ke apne sold parts
+// Everyone's available parts + this dealer's own sold parts
 export async function fetchParts(dealerId) {
   let q = supabase
     .from("parts")
@@ -79,7 +79,7 @@ export async function deletePart(id, photoUrl) {
   if (path) supabase.storage.from(PHOTO_BUCKET).remove([path]);
 }
 
-// Dealer ki jaankari badalne par uske purane parts par bhi lagti hai
+// When a dealer updates their details, it also applies to their existing parts
 export async function updateDealerParts(dealerId, profile) {
   const { error } = await supabase
     .from("parts")
@@ -88,14 +88,62 @@ export async function updateDealerParts(dealerId, profile) {
   if (error) throw error;
 }
 
-// Live updates. Band karne ke liye jo function milta hai use call karein.
+// Live updates. Call the returned function to unsubscribe.
 export function subscribeToParts({ onUpsert, onRemove }) {
-  // Har baar naya naam: React dev mode (StrictMode) mein double-subscribe error se bachata hai
+  // A fresh channel name each time avoids double-subscribe errors in React StrictMode
   const channel = supabase
     .channel(`parts-live-${Math.random().toString(36).slice(2, 8)}`)
     .on("postgres_changes", { event: "*", schema: "public", table: "parts" }, (payload) => {
       if (payload.eventType === "DELETE") onRemove(payload.old.id);
       else onUpsert(fromRow(payload.new));
+    })
+    .subscribe();
+  return () => supabase.removeChannel(channel);
+}
+
+// Converts a database review row into the shape the UI uses
+const fromReviewRow = (r) => ({
+  id: r.id,
+  dealerId: r.dealer_id,
+  partId: r.part_id,
+  rating: r.rating,
+  comment: r.comment,
+  createdAt: new Date(r.created_at).getTime(),
+});
+
+export async function fetchReviews() {
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(3000);
+  if (error) throw error;
+  return data.map(fromReviewRow);
+}
+
+// No need to send dealer_id from here - the database itself
+// derives the real dealer from part_id (spoof-proof).
+export async function insertReview({ partId, rating, comment, deviceId }) {
+  const { data, error } = await supabase
+    .from("reviews")
+    .insert({
+      part_id: partId,
+      rating,
+      comment: comment || null,
+      device_id: deviceId,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return fromReviewRow(data);
+}
+
+// Live updates: as soon as anyone submits a review, everyone sees it instantly
+export function subscribeToReviews({ onInsert }) {
+  const channel = supabase
+    .channel(`reviews-live-${Math.random().toString(36).slice(2, 8)}`)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "reviews" }, (payload) => {
+      onInsert(fromReviewRow(payload.new));
     })
     .subscribe();
   return () => supabase.removeChannel(channel);

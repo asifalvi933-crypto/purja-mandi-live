@@ -1,3 +1,4 @@
+// src/components/buyer/BuyerScreen.jsx
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import Chip from "../ui/Chip";
@@ -5,7 +6,7 @@ import InfoCard from "../ui/InfoCard";
 import PartCard from "./PartCard";
 import { inputBase, inputCls } from "../ui/styles";
 
-export default function BuyerScreen({ items, status, onRetry }) {
+export default function BuyerScreen({ items, status, onRetry, ratingFor, onRate }) {
   const [q, setQ] = useState("");
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
@@ -53,29 +54,29 @@ export default function BuyerScreen({ items, status, onRetry }) {
 
   let body;
   if (status === "loading") {
-    body = <p className="text-center text-slate-600 py-10">Parts aa rahe hain...</p>;
+    body = <p className="text-center text-slate-600 py-10">Loading parts...</p>;
   } else if (status === "error") {
     body = (
       <InfoCard
-        title="Parts load nahi hue"
-        text="Internet check karein aur dobara try karein."
-        action="Dobara try karein"
+        title="Couldn't load parts"
+        text="Check your internet connection and try again."
+        action="Try again"
         onAction={onRetry}
       />
     );
   } else if (available.length === 0) {
     body = (
       <InfoCard
-        title="Abhi koi part list nahi hua"
-        text="Dealer Bechein tab se pehla part daal sakte hain."
+        title="No parts listed yet"
+        text="Sellers can add their first part from the Sell tab."
       />
     );
   } else if (results.length === 0) {
     body = (
       <InfoCard
-        title="Yeh part abhi nahi mila"
-        text="Part ka doosra naam likhein ya filter hata dein."
-        action="Saare parts dekhein"
+        title="No matching parts found"
+        text="Try a different search term or clear the filters."
+        action="Show all parts"
         onAction={clearAll}
       />
     );
@@ -83,7 +84,7 @@ export default function BuyerScreen({ items, status, onRetry }) {
     body = (
       <div className="space-y-3">
         {results.map((i) => (
-          <PartCard key={i.id} item={i} />
+          <PartCard key={i.id} item={i} rating={ratingFor(i.dealerId)} onRate={onRate} />
         ))}
       </div>
     );
@@ -102,8 +103,8 @@ export default function BuyerScreen({ items, status, onRetry }) {
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Part ya gaadi likhein, jaise Swift headlight"
-            aria-label="Part dhoondein"
+            placeholder="Search a part or car, e.g. Swift headlight"
+            aria-label="Search parts"
             className={inputBase + " pl-10 pr-3"}
           />
         </div>
@@ -116,7 +117,7 @@ export default function BuyerScreen({ items, status, onRetry }) {
               setModel("");
             }}
           >
-            Sab gaadi
+            All cars
           </Chip>
           {brands.map((b) => (
             <Chip
@@ -136,10 +137,10 @@ export default function BuyerScreen({ items, status, onRetry }) {
           <select
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            aria-label="Model chunein"
+            aria-label="Select model"
             className={inputCls + " mt-2"}
           >
-            <option value="">{brand} ke sabhi models</option>
+            <option value="">All {brand} models</option>
             {models.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -152,10 +153,10 @@ export default function BuyerScreen({ items, status, onRetry }) {
       <div className="px-4 py-3">
         {status === "ready" && available.length > 0 && (
           <div className="flex items-center justify-between mb-2 text-sm text-slate-600">
-            <span>{results.length} part mile</span>
+            <span>{results.length} parts found</span>
             {hasFilter && (
               <button onClick={clearAll} className="font-medium text-slate-900 underline">
-                Filter hatayein
+                Clear filters
               </button>
             )}
           </div>
